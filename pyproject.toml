@@ -1,0 +1,15 @@
+[project]
+name = "django-risingwave"
+version = "0.0.2"
+description = "A Django ORM connector for RisingWave"
+authors = [
+    {name = "Bas Steins", email = "blog@bascodes.com"},
+]
+dependencies = []
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
