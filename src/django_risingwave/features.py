@@ -7,7 +7,21 @@ from django.utils.functional import cached_property
 
 
 class DatabaseFeatures(BaseDatabaseFeatures):
-    minimum_database_version = (12,)
+
+    enforces_foreign_key_constraints = False
+    enforces_unique_constraints = False
+    allows_multiple_constraints_on_same_fields = False
+    indexes_foreign_keys = False
+    supports_column_check_constraints = False
+    supports_expression_indexes = False
+    supports_ignore_conflicts = False
+    supports_indexes = False
+    supports_index_column_ordering = False
+    supports_partial_indexes = False
+    supports_tz_offsets = False
+    uses_savepoints = False
+
+    minimum_database_version = (9,5)
     allows_group_by_selected_pks = True
     can_return_columns_from_insert = True
     can_return_rows_from_bulk_insert = True
@@ -24,7 +38,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     can_release_savepoints = True
     supports_comments = True
     supports_tablespaces = True
-    supports_transactions = True
+    supports_transactions = False
     can_introspect_materialized_views = True
     can_distinct_on_fields = True
     can_rollback_ddl = True
