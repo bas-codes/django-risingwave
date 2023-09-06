@@ -1,3 +1,5 @@
+# This file is based on the Django Postgres Backend (https://github.com/django/django/tree/main/django/db/backends/postgresql) and has been modified to work with RisingWave.
+
 """
 PostgreSQL database backend for Django.
 

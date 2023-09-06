@@ -1,3 +1,5 @@
+# This file is based on the Django Postgres Backend (https://github.com/django/django/tree/main/django/db/backends/postgresql) and has been modified to work with RisingWave.
+
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 from django.db.backends.ddl_references import IndexColumns
 from django.db.backends.postgresql.psycopg_any import sql
