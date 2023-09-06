@@ -24,6 +24,9 @@ def get_json_dumps(encoder):
 
 
 class DatabaseOperations(BaseDatabaseOperations):
+
+    def deferrable_sql(self): return ""
+    
     cast_char_field_without_max_length = "varchar"
     explain_prefix = "EXPLAIN"
     explain_options = frozenset(
@@ -141,9 +144,6 @@ class DatabaseOperations(BaseDatabaseOperations):
     def time_trunc_sql(self, lookup_type, sql, params, tzname=None):
         sql, params = self._convert_sql_to_tz(sql, params, tzname)
         return f"DATE_TRUNC(%s, {sql})::time", (lookup_type, *params)
-
-    def deferrable_sql(self):
-        return " DEFERRABLE INITIALLY DEFERRED"
 
     def fetch_returned_insert_rows(self, cursor):
         """
