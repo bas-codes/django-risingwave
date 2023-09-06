@@ -5,6 +5,21 @@ from django.db.backends.utils import strip_quotes
 
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
+
+
+    sql_check_constraint = ''
+    sql_delete_column = "ALTER TABLE %(table)s DROP COLUMN %(column)s "
+    def _alter_column_null_sql(self, *_, **__): pass
+    def _create_unique_sql(self, model, fields=None, **kwargs): return 'select 1'
+    def _create_fk_sql(self, *args, **kwargs): return 'select 1'
+    def _create_index_sql(self, model, fields=None, **kwargs): return ''
+    def _model_indexes_sql(self, model): return []
+    def _field_indexes_sql(self, model, field): return []
+    data_types_suffix = {}
+    def add_index(self, model, index, concurrently=False): pass
+    def remove_index(self, model, index, concurrently=False): pass
+    def alter_index_together(self, model, old_index_together, new_index_together): pass
+
     # Setting all constraints to IMMEDIATE to allow changing data in the same
     # transaction.
     sql_update_with_default = (
@@ -319,14 +334,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 opclasses=opclasses,
             )
         return super()._index_columns(table, columns, col_suffixes, opclasses)
-
-    def add_index(self, model, index, concurrently=False):
-        self.execute(
-            index.create_sql(model, self, concurrently=concurrently), params=None
-        )
-
-    def remove_index(self, model, index, concurrently=False):
-        self.execute(index.remove_sql(model, self, concurrently=concurrently))
 
     def _delete_index_sql(self, model, name, sql=None, concurrently=False):
         sql = (
