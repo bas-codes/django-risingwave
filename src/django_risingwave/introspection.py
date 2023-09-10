@@ -1,5 +1,3 @@
-# This file is based on the Django Postgres Backend (https://github.com/django/django/tree/main/django/db/backends/postgresql) and has been modified to work with RisingWave.
-
 from collections import namedtuple
 
 from django.db.backends.base.introspection import BaseDatabaseIntrospection
@@ -61,7 +59,11 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
             """
             SELECT
                 c.relname,
-                't',
+                CASE
+                    WHEN c.relispartition THEN 'p'
+                    WHEN c.relkind IN ('m', 'v') THEN 'v'
+                    ELSE 't'
+                END,
                 obj_description(c.oid, 'pg_class')
             FROM pg_catalog.pg_class c
             LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
