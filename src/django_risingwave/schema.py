@@ -1,3 +1,5 @@
+# This file is based on the Django Postgres Backend (https://github.com/django/django/tree/main/django/db/backends/postgresql) and has been modified to work with RisingWave.
+
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 from django.db.backends.ddl_references import IndexColumns
 from django.db.backends.postgresql.psycopg_any import sql
@@ -5,6 +7,21 @@ from django.db.backends.utils import strip_quotes
 
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
+
+
+    sql_check_constraint = ''
+    sql_delete_column = "ALTER TABLE %(table)s DROP COLUMN %(column)s "
+    def _alter_column_null_sql(self, *_, **__): pass
+    def _create_unique_sql(self, model, fields=None, **kwargs): return 'select 1'
+    def _create_fk_sql(self, *args, **kwargs): return 'select 1'
+    def _create_index_sql(self, model, fields=None, **kwargs): return ''
+    def _model_indexes_sql(self, model): return []
+    def _field_indexes_sql(self, model, field): return []
+    data_types_suffix = {}
+    def add_index(self, model, index, concurrently=False): pass
+    def remove_index(self, model, index, concurrently=False): pass
+    def alter_index_together(self, model, old_index_together, new_index_together): pass
+
     # Setting all constraints to IMMEDIATE to allow changing data in the same
     # transaction.
     sql_update_with_default = (
@@ -320,14 +337,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             )
         return super()._index_columns(table, columns, col_suffixes, opclasses)
 
-    def add_index(self, model, index, concurrently=False):
-        self.execute(
-            index.create_sql(model, self, concurrently=concurrently), params=None
-        )
-
-    def remove_index(self, model, index, concurrently=False):
-        self.execute(index.remove_sql(model, self, concurrently=concurrently))
-
     def _delete_index_sql(self, model, name, sql=None, concurrently=False):
         sql = (
             self.sql_delete_index_concurrently
@@ -372,3 +381,58 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             include=include,
             expressions=expressions,
         )
+
+    def _iter_column_sql(
+        self, column_db_type, params, model, field, field_db_params, include_default
+    ):
+        yield column_db_type
+        if collation := field_db_params.get("collation"):
+            yield self._collate_sql(collation)
+        if self.connection.features.supports_comments_inline and field.db_comment:
+            yield self._comment_sql(field.db_comment)
+        # Work out nullability.
+        null = field.null
+        # Add database default.
+        # if field.db_default is not NOT_PROVIDED:
+        #     default_sql, default_params = self.db_default_sql(field)
+        #     yield f"DEFAULT {default_sql}"
+        #     params.extend(default_params)
+        #     include_default = False
+        # Include a default value, if requested.
+        include_default = (
+            include_default
+            and not self.skip_default(field)
+            and
+            # Don't include a default value if it's a nullable field and the
+            # default cannot be dropped in the ALTER COLUMN statement (e.g.
+            # MySQL longtext and longblob).
+            not (null and self.skip_default_on_alter(field))
+        )
+        if include_default:
+            default_value = self.effective_default(field)
+            if default_value is not None:
+                column_default = "DEFAULT " + self._column_default_sql(field)
+                if self.connection.features.requires_literal_defaults:
+                    # Some databases can't take defaults as a parameter (Oracle).
+                    # If this is the case, the individual schema backend should
+                    # implement prepare_default().
+                    yield column_default % self.prepare_default(default_value)
+                else:
+                    yield column_default
+                    params.append(default_value)
+        # Oracle treats the empty string ('') as null, so coerce the null
+        # option whenever '' is a possible value.
+        if (
+            field.empty_strings_allowed
+            and not field.primary_key
+            and self.connection.features.interprets_empty_strings_as_nulls
+        ):
+            null = True
+        # Optionally add the tablespace if it's an implicitly indexed column.
+        tablespace = field.db_tablespace or model._meta.db_tablespace
+        if (
+            tablespace
+            and self.connection.features.supports_tablespaces
+            and field.unique
+        ):
+            yield self.connection.ops.tablespace_sql(tablespace, inline=True)
