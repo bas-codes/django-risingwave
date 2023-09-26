@@ -1,6 +1,6 @@
 [project]
 name = "django-risingwave"
-version = "0.0.6"
+version = "0.0.10"
 description = "A Django ORM connector for RisingWave"
 authors = [
     {name = "Bas Steins", email = "blog@bascodes.com"},
@@ -8,7 +8,9 @@ authors = [
 maintainers = [
   { name = "Bas Steins", email = "blog@bascodes.com" },
 ]
-dependencies = []
+dependencies = [
+  'django > 4.0'
+]
 requires-python = ">=3.9"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -17,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
+    "Framework :: Django",
 ]
 
 [project.urls]
@@ -27,3 +30,8 @@ classifiers = [
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+
+[options.extras_require]
+psycopg2-binary = psycopg2-binary
+psycopg2 = psycopg2
