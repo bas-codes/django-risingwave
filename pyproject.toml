@@ -1,6 +1,6 @@
 [project]
 name = "django-risingwave"
-version = "0.0.10"
+version = "0.0.11"
 description = "A Django ORM connector for RisingWave"
 authors = [
     {name = "Bas Steins", email = "blog@bascodes.com"},
